@@ -12,6 +12,6 @@ router.get("/", async (req, res) => {
     console.error("Professionals error:", err);
     res.status(500).json({ message: "Failed to load professionals" });
   }
-});
+}); 
 
 module.exports = router;
