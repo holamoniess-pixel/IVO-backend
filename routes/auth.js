@@ -1,19 +1,69 @@
+const express = require("express");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const User = require("../models/User");
 
-const r=require("express").Router();
-const U=require("../models/User");
-const b=require("bcryptjs");
-const j=require("jsonwebtoken");
+const router = express.Router();
 
-r.post("/signup",async(req,res)=>{
- const u=await U.create({...req.body,password:await b.hash(req.body.password,10)});
- res.json({token:j.sign({id:u._id},process.env.JWT_SECRET)});
+// SIGN UP
+router.post("/signup", async (req, res) => {
+  try {
+    const { name, email, phone, password } = req.body;
+
+    const exists = await User.findOne({ email });
+    if (exists) {
+      return res.status(400).json({ message: "Email already exists" });
+    }
+
+    const hashed = await bcrypt.hash(password, 12);
+
+    const user = await User.create({
+      name,
+      email,
+      phone,
+      password: hashed,
+      verified: true // set true for now (no email verify yet)
+    });
+
+    const token = jwt.sign(
+      { id: user._id },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    res.json({ token });
+  } catch (err) {
+    console.error("Signup error:", err);
+    res.status(500).json({ message: "Signup failed" });
+  }
 });
 
-r.post("/login",async(req,res)=>{
- const u=await U.findOne({email:req.body.email});
- if(!u||!await b.compare(req.body.password,u.password))
-  return res.status(400).json({message:"Invalid credentials"});
- res.json({token:j.sign({id:u._id},process.env.JWT_SECRET)});
+// LOGIN
+router.post("/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user || !user.password) {
+      return res.status(400).json({ message: "Invalid credentials" });
+    }
+
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) {
+      return res.status(400).json({ message: "Invalid credentials" });
+    }
+
+    const token = jwt.sign(
+      { id: user._id },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    res.json({ token });
+  } catch (err) {
+    console.error("Login error:", err);
+    res.status(500).json({ message: "Login failed" });
+  }
 });
 
-module.exports=r;
+module.exports = router;
