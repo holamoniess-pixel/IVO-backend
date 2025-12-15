@@ -6,7 +6,7 @@ const router = express.Router();
 // GET ALL PROFESSIONALS
 router.get("/", async (req, res) => {
   try {
-    const users = await User.find({}, "-password");
+    const users = await User.find({}, "-password"); 
     res.json(users);
   } catch (err) {
     console.error("Professionals error:", err);
