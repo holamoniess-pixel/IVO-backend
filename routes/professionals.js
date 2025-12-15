@@ -1,8 +1,17 @@
+const express = require("express");
+const User = require("../models/User");
 
-const r=require("express").Router();
-const U=require("../models/User");
-r.get("/",async(req,res)=>{
- const q=req.query.search?{name:new RegExp(req.query.search,"i")}:{};
- res.json(await U.find(q));
+const router = express.Router();
+
+// GET ALL PROFESSIONALS
+router.get("/", async (req, res) => {
+  try {
+    const users = await User.find({}, "-password");
+    res.json(users);
+  } catch (err) {
+    console.error("Professionals error:", err);
+    res.status(500).json({ message: "Failed to load professionals" });
+  }
 });
-module.exports=r;
+
+module.exports = router;
