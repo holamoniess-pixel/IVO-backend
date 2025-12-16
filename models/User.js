@@ -13,10 +13,7 @@ const UserSchema = new mongoose.Schema({
   linkedin: String,
   github: String,
   twitter: String,
-  skills: [String],
+  skills: [String]
 });
 
-// ✅ Prevent OverwriteModelError
-module.exports =
-  mongoose.models.User ||
-  mongoose.model("User", UserSchema);
+module.exports = mongoose.models.User || mongoose.model("User", UserSchema);
