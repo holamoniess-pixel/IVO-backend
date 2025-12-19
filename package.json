@@ -1,9 +1,14 @@
-
 {
   "name": "ivo-backend",
   "version": "1.0.0",
+  "description": "IVO Jobs backend API",
   "main": "server.js",
-  "scripts": { "start": "node server.js" },
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18.x"
+  },
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
