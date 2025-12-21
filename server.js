@@ -1,37 +1,51 @@
+require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 
 const app = express();
 
-// middleware
-app.use(cors({ origin: "*" }));
+/* =======================
+   MIDDLEWARE
+======================= */
+app.use(cors({
+  origin: "*",
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true
+}));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// routes
-app.use("/api/professionals", require("./routes/professionals"));
-app.use("/api/jobs", require("./routes/jobs"));
-app.use("/api/auth", require("./routes/auth"));
-app.use("/api/profile", require("./routes/profile"));
+/* =======================
+   DATABASE CONNECTION
+======================= */
+let isConnected = false;
 
-// health check (IMPORTANT)
+async function connectDB() {
+  if (isConnected) return;
+  await mongoose.connect(process.env.MONGO_URI);
+  isConnected = true;
+  console.log("✅ MongoDB connected");
+}
+
+app.use(async (req, res, next) => {
+  await connectDB();
+  next();
+});
+
+/* =======================
+   HEALTH CHECK
+======================= */
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
-// port (Fly uses 8080 internally)
-const PORT = process.env.PORT || 8080;
+/* =======================
+   ROUTES
+======================= */
+app.use("/api/auth", require("../routes/auth"));
+app.use("/api/jobs", require("../routes/jobs"));
+app.use("/api/profile", require("../routes/profile"));
+app.use("/api/professionals", require("../routes/professionals"));
 
-// mongo
-mongoose
-  .connect(process.env.MONGO_URI)
-  .then(() => {
-    console.log("✅ MongoDB connected");
-    app.listen(PORT, () =>
-      console.log(`🚀 Server running on port ${PORT}`)
-    );
-  })
-  .catch(err => {
-    console.error("❌ MongoDB error:", err.message);
-    process.exit(1);
-  });
+module.exports = app;
